@@ -36,6 +36,13 @@ func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 	firstChar := true
 	var additionalWhitelist map[int32]struct{}
 
+	placeSpaceIfNeed := func() {
+		if !spaceStored && badChar && !firstChar {
+			bl.WriteRune(32)
+			spaceStored = true
+		}
+	}
+
 	//init additional whitelist
 	if cfg.AddWl != "" {
 		additionalWhitelist = make(map[int32]struct{}, len(cfg.AddWl))
@@ -49,10 +56,7 @@ func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 		if cfg.Eng {
 			//upper case
 			if r > 64 && r < 91 {
-				if !spaceStored && badChar && !firstChar {
-					bl.WriteRune(32)
-					spaceStored = true
-				}
+				placeSpaceIfNeed()
 				bl.WriteRune(r + 32)
 				spaceStored = false
 				badChar = false
@@ -62,10 +66,7 @@ func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 
 			//lower case
 			if r > 96 && r < 123 {
-				if !spaceStored && badChar && !firstChar {
-					bl.WriteRune(32)
-					spaceStored = true
-				}
+				placeSpaceIfNeed()
 				bl.WriteRune(r)
 				spaceStored = false
 				badChar = false
@@ -78,10 +79,7 @@ func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 		if cfg.Rus {
 			//upper case
 			if r > 1039 && r < 1072 {
-				if !spaceStored && badChar && !firstChar {
-					bl.WriteRune(32)
-					spaceStored = true
-				}
+				placeSpaceIfNeed()
 				bl.WriteRune(r + 32)
 				spaceStored = false
 				badChar = false
@@ -91,10 +89,7 @@ func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 
 			//lower case
 			if r > 1071 && r < 1104 {
-				if !spaceStored && badChar && !firstChar {
-					bl.WriteRune(32)
-					spaceStored = true
-				}
+				placeSpaceIfNeed()
 				bl.WriteRune(r)
 				spaceStored = false
 				badChar = false
@@ -107,10 +102,7 @@ func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 		// digits
 		if cfg.Dig {
 			if r > 47 && r < 58 {
-				if !spaceStored && badChar && !firstChar {
-					bl.WriteRune(32)
-					spaceStored = true
-				}
+				placeSpaceIfNeed()
 				bl.WriteRune(r)
 				spaceStored = false
 				badChar = false
@@ -122,10 +114,7 @@ func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 		// chars from additional whitelist
 		if additionalWhitelist != nil {
 			if _, ok := additionalWhitelist[r]; ok {
-				if !spaceStored && badChar && !firstChar {
-					bl.WriteRune(32)
-					spaceStored = true
-				}
+				placeSpaceIfNeed()
 				bl.WriteRune(r)
 				spaceStored = false
 				badChar = false
