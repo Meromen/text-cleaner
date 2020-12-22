@@ -20,6 +20,10 @@ type WhiteListConfig struct {
 	AddWl string
 }
 
+const (
+	RuneSpace = ' '
+)
+
 // Clean return string in lower case after cleaning with whitelist of chars.
 // whitelist is forming with WhiteListConfig
 func Clean(r io.Reader, cfg WhiteListConfig) string {
@@ -28,11 +32,10 @@ func Clean(r io.Reader, cfg WhiteListConfig) string {
 	return cleanStringWithStringBuilder(b.String(), cfg)
 }
 
-
-func  cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
+func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 	bl := strings.Builder{}
 	bl.Grow(len(str))
-	lastWrittenRune := ' '
+	lastWrittenRune := RuneSpace
 	var runeToWrite int32
 	var additionalWhitelist map[int32]struct{}
 
@@ -47,34 +50,25 @@ func  cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 	for _, r := range str {
 		runeToWrite = -1
 
-		//eng
-		if cfg.Eng {
-			//lower case
-			if r > 96 && r < 123 {
-				runeToWrite = r
-			}
+		switch {
+		// english alphabet
+		case cfg.Eng && isEnglishLowerCaseRune(r):
+			runeToWrite = r
+		case cfg.Eng && isEnglishUpperCaseRune(r):
+			runeToWrite = r + 32
 
-			//upper case
-			if r > 64 && r < 91 {
-				runeToWrite = r + 32
-			}
-		}
+		// russian alphabet
+		case cfg.Rus && isRussianLowerCaseRune(r):
+			runeToWrite = r
+		case cfg.Rus && isRussianUpperCaseRune(r):
+			runeToWrite = r + 32
 
-		// rus
-		if cfg.Rus {
-			//lower case
-			if r > 1071 && r < 1104 {
-				runeToWrite = r
-			}
+		// 	digits
+		case cfg.Dig && isDigitRune(r):
+			runeToWrite = r
 
-			//upper case
-			if r > 1039 && r < 1072 {
-				runeToWrite = r + 32
-			}
-		}
-
-		// digits
-		if cfg.Dig && r > 47 && r < 58 {
+		//	space
+		case r == RuneSpace && lastWrittenRune != RuneSpace:
 			runeToWrite = r
 		}
 
@@ -85,21 +79,34 @@ func  cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 			}
 		}
 
-		//space
-		if r == 32 && lastWrittenRune != r{
-			runeToWrite = r
-		}
-
 		if runeToWrite != -1 {
 			lastWrittenRune = runeToWrite
 			bl.WriteRune(runeToWrite)
-		} else {
-			if lastWrittenRune != ' '{
-				bl.WriteRune(' ')
-				lastWrittenRune = ' '
-			}
+		} else if lastWrittenRune != RuneSpace {
+			bl.WriteRune(RuneSpace)
+			lastWrittenRune = RuneSpace
 		}
 	}
 
 	return strings.TrimSuffix(bl.String(), " ")
+}
+
+func isRussianLowerCaseRune(r int32) bool {
+	return r > 1071 && r < 1104
+}
+
+func isRussianUpperCaseRune(r int32) bool {
+	return r > 1039 && r < 1072
+}
+
+func isEnglishLowerCaseRune(r int32) bool {
+	return r > 96 && r < 123
+}
+
+func isEnglishUpperCaseRune(r int32) bool {
+	return r > 64 && r < 91
+}
+
+func isDigitRune(r int32) bool {
+	return r > 47 && r < 58
 }
