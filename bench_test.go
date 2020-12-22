@@ -1,6 +1,8 @@
 package text_cleaner
 
 import (
+	"log"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -20,5 +22,17 @@ func BenchmarkClean(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		Result = Clean(r, cnf)
+	}
+}
+
+func BenchmarkRegExp(b *testing.B) {
+	reg, err := regexp.Compile("[^0-9a-zA-Zа-яА-Я]+")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		Result = reg.ReplaceAllString(str, " ")
+		Result = strings.ToLower(Result)
 	}
 }
