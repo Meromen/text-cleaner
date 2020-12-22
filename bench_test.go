@@ -1,7 +1,6 @@
 package text_cleaner
 
 import (
-	"io"
 	"strings"
 	"testing"
 )
@@ -11,48 +10,15 @@ var str string = "\n\n\n<!DOCTYPE html>\n<html lang=\"en\" data-color-mode=\"dar
 var Result string
 
 func BenchmarkClean(b *testing.B) {
-	//str := "<h1>Я люблю.  111ЗPorno tut...</h1> "
 	r := strings.NewReader(str)
 	cnf := WhiteListConfig{
 		Eng:   true,
 		Rus:   true,
 		Dig:   true,
-		AddWl: "/.:-?a",
-	}
-
-	for i := 0; i < b.N; i++ {
-		Result = Clean(r, cnf)
-	}
-}
-
-func BenchmarkClean2(b *testing.B) {
-	//str := "<h1>Я люблю.  111ЗPorno tut...</h1> "
-	r := strings.NewReader(str)
-	cnf := WhiteListConfig{
-		Eng: true,
-		Rus: true,
-		Dig: true,
 		AddWl: "",
 	}
 
 	for i := 0; i < b.N; i++ {
 		Result = Clean(r, cnf)
-	}
-}
-
-func BenchmarkClean3(b *testing.B) {
-	//str := "<h1>Я люблю.  111ЗPorno tut...</h1> "
-	r := strings.NewReader(str)
-	cnf := WhiteListConfig{
-		Eng: true,
-		Rus: true,
-		Dig: true,
-		AddWl: "/.:-?a",
-	}
-
-	for i := 0; i < b.N; i++ {
-		b := strings.Builder{}
-		io.Copy(&b, r)
-		Result = cleanStringWithStringBuilder(b.String(), cnf)
 	}
 }

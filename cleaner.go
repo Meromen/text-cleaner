@@ -9,7 +9,7 @@ import (
 
 // Config for cleaning
 // if Eng == true then cleaner keep chars of english alphabet in result string.
-// if Rus == true then cleaner keep chars of english alphabet in result string.
+// if Rus == true then cleaner keep chars of russian alphabet in result string.
 // if Dig == true then cleaner keep digits in result string.
 // AddWl it's additional whitelist of chars,
 // pass ",|" if you want keep ',' and '|' in result string.
@@ -28,20 +28,13 @@ func Clean(r io.Reader, cfg WhiteListConfig) string {
 	return cleanStringWithStringBuilder(b.String(), cfg)
 }
 
-func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
+
+func  cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 	bl := strings.Builder{}
 	bl.Grow(len(str))
-	spaceStored := false
-	badChar := false
-	firstChar := true
+	lastWrittenRune := ' '
+	var runeToWrite int32
 	var additionalWhitelist map[int32]struct{}
-
-	placeSpaceIfNeed := func() {
-		if !spaceStored && badChar && !firstChar {
-			bl.WriteRune(32)
-			spaceStored = true
-		}
-	}
 
 	//init additional whitelist
 	if cfg.AddWl != "" {
@@ -52,87 +45,61 @@ func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
 	}
 
 	for _, r := range str {
+		runeToWrite = -1
+
 		//eng
 		if cfg.Eng {
-			//upper case
-			if r > 64 && r < 91 {
-				placeSpaceIfNeed()
-				bl.WriteRune(r + 32)
-				spaceStored = false
-				badChar = false
-				firstChar = false
-				continue
-			}
-
 			//lower case
 			if r > 96 && r < 123 {
-				placeSpaceIfNeed()
-				bl.WriteRune(r)
-				spaceStored = false
-				badChar = false
-				firstChar = false
-				continue
+				runeToWrite = r
+			}
+
+			//upper case
+			if r > 64 && r < 91 {
+				runeToWrite = r + 32
 			}
 		}
 
 		// rus
 		if cfg.Rus {
-			//upper case
-			if r > 1039 && r < 1072 {
-				placeSpaceIfNeed()
-				bl.WriteRune(r + 32)
-				spaceStored = false
-				badChar = false
-				firstChar = false
-				continue
-			}
-
 			//lower case
 			if r > 1071 && r < 1104 {
-				placeSpaceIfNeed()
-				bl.WriteRune(r)
-				spaceStored = false
-				badChar = false
-				firstChar = false
-				continue
+				runeToWrite = r
 			}
 
+			//upper case
+			if r > 1039 && r < 1072 {
+				runeToWrite = r + 32
+			}
 		}
 
 		// digits
-		if cfg.Dig {
-			if r > 47 && r < 58 {
-				placeSpaceIfNeed()
-				bl.WriteRune(r)
-				spaceStored = false
-				badChar = false
-				firstChar = false
-				continue
-			}
+		if cfg.Dig && r > 47 && r < 58 {
+			runeToWrite = r
 		}
 
 		// chars from additional whitelist
 		if additionalWhitelist != nil {
 			if _, ok := additionalWhitelist[r]; ok {
-				placeSpaceIfNeed()
-				bl.WriteRune(r)
-				spaceStored = false
-				badChar = false
-				firstChar = false
-				continue
+				runeToWrite = r
 			}
 		}
 
 		//space
-		if r == 32 && !spaceStored && !badChar {
-			bl.WriteRune(r)
-			spaceStored = true
-			badChar = false
-			firstChar = false
-			continue
+		if r == 32 && lastWrittenRune != r{
+			runeToWrite = r
 		}
 
-		badChar = true
+		if runeToWrite != -1 {
+			lastWrittenRune = runeToWrite
+			bl.WriteRune(runeToWrite)
+		} else {
+			if lastWrittenRune != ' '{
+				bl.WriteRune(' ')
+				lastWrittenRune = ' '
+			}
+		}
 	}
-	return bl.String()
+
+	return strings.TrimSuffix(bl.String(), " ")
 }
