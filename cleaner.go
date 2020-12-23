@@ -5,6 +5,7 @@ package text_cleaner
 import (
 	"io"
 	"strings"
+	"bytes"
 )
 
 // Config for cleaning
@@ -29,10 +30,16 @@ const (
 func Clean(r io.Reader, cfg WhiteListConfig) string {
 	b := strings.Builder{}
 	io.Copy(&b, r)
-	return cleanStringWithStringBuilder(b.String(), cfg)
+	return CleanString(b.String(), cfg)
 }
 
-func cleanStringWithStringBuilder(str string, cfg WhiteListConfig) string {
+func CleanBytes (sb []byte, cfg WhiteListConfig) string {
+	b := bytes.Buffer{}
+	b.Write(sb)
+	return CleanString(b.String(), cfg)
+}
+
+func CleanString(str string, cfg WhiteListConfig) string {
 	bl := strings.Builder{}
 	bl.Grow(len(str))
 	lastWrittenRune := RuneSpace
