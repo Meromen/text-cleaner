@@ -8,7 +8,6 @@ import (
 )
 
 func TestClean(t *testing.T) {
-
 	var tests = []struct {
 		data   string
 		want   string
@@ -164,4 +163,11 @@ func TestClean(t *testing.T) {
 			assert.Equal(t, tt.want, str)
 		})
 	}
+}
+
+
+func TestExamples(t *testing.T) {
+	ExampleClean()
+	ExampleCleanBytes()
+	ExampleCleanString()
 }
