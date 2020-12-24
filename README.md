@@ -33,30 +33,30 @@ Clean string
 ```
 str := "Hello it's    fast cleaner очень быстрый, быстрее 10 самолетов....    "
 
-	cfg := WhiteListConfig{
-		Eng:   true,
-		Rus:   false,
-		Dig:   true,
-		AddWl: "'т",
-	}
+cfg := WhiteListConfig{
+	Eng:   true,
+	Rus:   false,
+	Dig:   true,
+	AddWl: "'т",
+}
 
-	result := CleanString(str, cfg)
-	fmt.Println(result) // "Hello it's fast cleaner т т 10 т"
+result := CleanString(str, cfg)
+fmt.Println(result) // "Hello it's fast cleaner т т 10 т"
 ```
 
 Clean slice of byte
 ```
 sb := []byte("123 asd   фыв   ")
 
-	cfg := WhiteListConfig{
-		Eng:   true,
-		Rus:   true,
-		Dig:   false,
-		AddWl: "",
-	}
+cfg := WhiteListConfig{
+	Eng:   true,
+	Rus:   true,
+	Dig:   false,
+	AddWl: "",
+}
 
-	result := CleanBytes(sb, cfg)
-	fmt.Println(result) // "asd фыв"
+result := CleanBytes(sb, cfg)
+fmt.Println(result) // "asd фыв"
 ```
 
 ## Benchmark
