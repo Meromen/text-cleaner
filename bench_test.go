@@ -34,5 +34,6 @@ func BenchmarkRegExp(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Result = reg.ReplaceAllString(str, " ")
 		Result = strings.ToLower(Result)
+		Result = strings.TrimSpace(Result)
 	}
 }
