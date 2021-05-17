@@ -98,6 +98,16 @@ func CleanString(str string, cfg WhiteListConfig) string {
 	return strings.TrimSuffix(bl.String(), " ")
 }
 
+func CleanByStopWords(words []string, stopList map[string]struct{}) []string {
+	var cleanList []string
+	for _, word := range words {
+		if _, ok := stopList[word]; !ok {
+			cleanList = append(cleanList, word)
+		}
+	}
+	return cleanList
+}
+
 func isRussianLowerCaseRune(r int32) bool {
 	return r > 1071 && r < 1104
 }

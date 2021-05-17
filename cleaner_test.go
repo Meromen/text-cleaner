@@ -165,9 +165,29 @@ func TestClean(t *testing.T) {
 	}
 }
 
+func TestCleanByStopWords(t *testing.T) {
+	cfg := WhiteListConfig{
+		Eng:   true,
+		Rus:   true,
+		Dig:   true,
+		AddWl: "",
+	}
+	rawStr := "<h1>Я люблю.  111ЗPorno tut...</h1>"
+	expected := "люблю 111зporno tut"
+	r := strings.NewReader(rawStr)
+	res := Clean(r, cfg)
+	stopWordsList := make(map[string]struct{})
+	stopWordsList["я"] = struct{}{}
+	stopWordsList["h1"] = struct{}{}
+	words := strings.Split(res, " ")
+	cleanResult := CleanByStopWords(words, stopWordsList)
+	actual := strings.Join(cleanResult, " ")
+	assert.Equal(t, expected, actual)
+}
 
 func TestExamples(t *testing.T) {
 	ExampleClean()
 	ExampleCleanBytes()
 	ExampleCleanString()
+	ExampleCleanByStopWords()
 }

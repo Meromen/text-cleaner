@@ -1,16 +1,19 @@
-text-cleaner is a fast text cleaner with whitelist of char. 
- Clean string in one loop over all symbols input
+text-cleaner is a fast text cleaner with whitelist of char. Clean string in one loop over all symbols input
 
-## Getting started 
+## Getting started
 
 ## Installing
+
 To start using text-cleaner, install Go and run go get:
+
 ```sh
 $ go get -u github.com/Meromen/text-cleaner
 ```
 
 ## Usage
+
 Clear from reader
+
 ```
 res, err := http.Get("https://google.com")
 if err != nil {
@@ -29,7 +32,8 @@ result := Clean(res.Body, cfg)
 fmt.Println(result)
 ```
 
-Clean string 
+Clean string
+
 ```
 str := "Hello it's    fast cleaner очень быстрый, быстрее 10 самолетов....    "
 
@@ -45,6 +49,7 @@ fmt.Println(result) // "Hello it's fast cleaner т т 10 т"
 ```
 
 Clean slice of byte
+
 ```
 sb := []byte("123 asd   фыв   ")
 
@@ -59,7 +64,30 @@ result := CleanBytes(sb, cfg)
 fmt.Println(result) // "asd фыв"
 ```
 
+Clean with stop words
+
+```
+str := "Hello it's    fast cleaner очень быстрый, быстрее 10 самолетов....    "
+stopWordsList := make(map[string]struct{})
+stopWordsList["fast"] = struct{}{}
+stopWordsList["it's"] = struct{}{}
+
+cfg := WhiteListConfig{
+    Eng:   true,
+    Rus:   false,
+    Dig:   true,
+    AddWl: "'т",
+}
+
+result := CleanString(str, cfg)
+fmt.Println(result) // "Hello it's fast cleaner т т 10 т"
+words := strings.Split(result, " ")
+cleanResult := CleanByStopWords(words, stopWordsList)
+fmt.Println(strings.Join(cleanResult, " ")) // "hello cleaner т т 10 т"
+```
+
 ## Benchmark
+
 ```
 // Clean with text-cleaner 
 BenchmarkClean-8        23317753                50.2 ns/op            32 B/op          1 allocs/op
@@ -69,6 +97,7 @@ BenchmarkRegExp-8          26359             45454 ns/op            4133 B/op   
 ``` 
 
 ## Contacts
+
 Yuri Pysin [@Meromen](https://github.com/Meromen)
 
 ## Licence

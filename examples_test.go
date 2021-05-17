@@ -3,6 +3,7 @@ package text_cleaner
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 func ExampleClean() {
@@ -49,4 +50,24 @@ func ExampleCleanString() {
 
 	result := CleanString(str, cfg)
 	fmt.Println(result) // "Hello it's fast cleaner т т 10 т"
+}
+
+func ExampleCleanByStopWords() {
+	str := "Hello it's    fast cleaner очень быстрый, быстрее 10 самолетов....    "
+	stopWordsList := make(map[string]struct{})
+	stopWordsList["fast"] = struct{}{}
+	stopWordsList["it's"] = struct{}{}
+
+	cfg := WhiteListConfig{
+		Eng:   true,
+		Rus:   false,
+		Dig:   true,
+		AddWl: "'т",
+	}
+
+	result := CleanString(str, cfg)
+	fmt.Println(result) // "Hello it's fast cleaner т т 10 т"
+	words := strings.Split(result, " ")
+	cleanResult := CleanByStopWords(words, stopWordsList)
+	fmt.Println(strings.Join(cleanResult, " ")) // "hello cleaner т т 10 т"
 }
