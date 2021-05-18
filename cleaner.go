@@ -165,21 +165,17 @@ func CleanStringWithBlackList(str string, cfg WhiteListConfig, blackListConfig B
 
 		if runeToWrite != -1 {
 			lastWrittenRune = runeToWrite
-			bl.WriteRune(runeToWrite)
 			tmpBl.WriteRune(runeToWrite)
 		} else if lastWrittenRune != RuneSpace {
-			bl.WriteRune(RuneSpace)
 			tmpBl.WriteRune(RuneSpace)
 			lastWrittenRune = RuneSpace
 		}
 
 		if lastWrittenRune == RuneSpace && tmpBl.String() != "" {
-			word := strings.TrimSuffix(tmpBl.String(), " ")
-			currentString := strings.TrimSuffix(bl.String(), " ")
-			if _, ok := blackList[word]; ok {
-				res := strings.ReplaceAll(currentString, word, "")
-				bl.Reset()
-				bl.WriteString(res)
+			word := tmpBl.String()
+			word = word[:len(word)-1]
+			if _, ok := blackList[word]; !ok {
+				bl.WriteString(tmpBl.String())
 			}
 			tmpBl.Reset()
 		}
