@@ -180,6 +180,11 @@ func CleanStringWithBlackList(str string, cfg WhiteListConfig, blackListConfig B
 			tmpBl.Reset()
 		}
 	}
+	if tmpBl.String() != "" {
+		if _, ok := blackList[tmpBl.String()]; !ok {
+			bl.WriteString(tmpBl.String())
+		}
+	}
 
 	return strings.TrimSuffix(bl.String(), " ")
 }
