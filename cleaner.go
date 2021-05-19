@@ -3,9 +3,9 @@
 package text_cleaner
 
 import (
+	"bytes"
 	"io"
 	"strings"
-	"bytes"
 )
 
 // Config for cleaning
@@ -21,6 +21,10 @@ type WhiteListConfig struct {
 	AddWl string
 }
 
+type BlackListConfig struct {
+	BlackList map[string]struct{}
+}
+
 const (
 	RuneSpace = ' '
 )
@@ -33,7 +37,7 @@ func Clean(r io.Reader, cfg WhiteListConfig) string {
 	return CleanString(b.String(), cfg)
 }
 
-func CleanBytes (sb []byte, cfg WhiteListConfig) string {
+func CleanBytes(sb []byte, cfg WhiteListConfig) string {
 	b := bytes.Buffer{}
 	b.Write(sb)
 	return CleanString(b.String(), cfg)
@@ -98,14 +102,86 @@ func CleanString(str string, cfg WhiteListConfig) string {
 	return strings.TrimSuffix(bl.String(), " ")
 }
 
-func CleanByStopWords(words []string, stopList map[string]struct{}) []string {
-	var cleanList []string
-	for _, word := range words {
-		if _, ok := stopList[word]; !ok {
-			cleanList = append(cleanList, word)
+func CleanWithBlackList(r io.Reader, cfg WhiteListConfig, blackList BlackListConfig) string {
+	b := strings.Builder{}
+	io.Copy(&b, r)
+	return CleanStringWithBlackList(b.String(), cfg, blackList)
+}
+
+func CleanBytesWithBlackList(sb []byte, cfg WhiteListConfig, blackList BlackListConfig) string {
+	b := bytes.Buffer{}
+	b.Write(sb)
+	return CleanStringWithBlackList(b.String(), cfg, blackList)
+}
+
+func CleanStringWithBlackList(str string, cfg WhiteListConfig, blackListConfig BlackListConfig) string {
+	bl := strings.Builder{}
+	bl.Grow(len(str))
+	tmpBl := strings.Builder{}
+	lastWrittenRune := RuneSpace
+	blackList := blackListConfig.BlackList
+	var runeToWrite int32
+	var additionalWhitelist map[int32]struct{}
+
+	//init additional whitelist
+	if cfg.AddWl != "" {
+		additionalWhitelist = make(map[int32]struct{}, len(cfg.AddWl))
+		for _, r := range cfg.AddWl {
+			additionalWhitelist[r] = struct{}{}
 		}
 	}
-	return cleanList
+
+	for _, r := range str {
+		runeToWrite = -1
+
+		switch {
+		// english alphabet
+		case cfg.Eng && isEnglishLowerCaseRune(r):
+			runeToWrite = r
+		case cfg.Eng && isEnglishUpperCaseRune(r):
+			runeToWrite = r + 32
+
+		// russian alphabet
+		case cfg.Rus && isRussianLowerCaseRune(r):
+			runeToWrite = r
+		case cfg.Rus && isRussianUpperCaseRune(r):
+			runeToWrite = r + 32
+
+		// 	digits
+		case cfg.Dig && isDigitRune(r):
+			runeToWrite = r
+
+		//	space
+		case r == RuneSpace && lastWrittenRune != RuneSpace:
+			runeToWrite = r
+		}
+
+		// chars from additional whitelist
+		if additionalWhitelist != nil {
+			if _, ok := additionalWhitelist[r]; ok {
+				runeToWrite = r
+			}
+		}
+
+		if runeToWrite != -1 {
+			lastWrittenRune = runeToWrite
+			tmpBl.WriteRune(runeToWrite)
+		} else if lastWrittenRune != RuneSpace {
+			tmpBl.WriteRune(RuneSpace)
+			lastWrittenRune = RuneSpace
+		}
+
+		if lastWrittenRune == RuneSpace && tmpBl.String() != "" {
+			word := tmpBl.String()
+			word = word[:len(word)-1]
+			if _, ok := blackList[word]; !ok {
+				bl.WriteString(tmpBl.String())
+			}
+			tmpBl.Reset()
+		}
+	}
+
+	return strings.TrimSuffix(bl.String(), " ")
 }
 
 func isRussianLowerCaseRune(r int32) bool {

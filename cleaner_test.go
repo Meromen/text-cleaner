@@ -165,29 +165,61 @@ func TestClean(t *testing.T) {
 	}
 }
 
-func TestCleanByStopWords(t *testing.T) {
-	cfg := WhiteListConfig{
+func TestCleanWithBlackList(t *testing.T) {
+	whiteListConfigExample := WhiteListConfig{
 		Eng:   true,
 		Rus:   true,
 		Dig:   true,
 		AddWl: "",
 	}
-	rawStr := "<h1>Я люблю.  111ЗPorno tut...</h1>"
-	expected := "люблю 111зporno tut"
-	r := strings.NewReader(rawStr)
-	res := Clean(r, cfg)
-	stopWordsList := make(map[string]struct{})
-	stopWordsList["я"] = struct{}{}
-	stopWordsList["h1"] = struct{}{}
-	words := strings.Split(res, " ")
-	cleanResult := CleanByStopWords(words, stopWordsList)
-	actual := strings.Join(cleanResult, " ")
-	assert.Equal(t, expected, actual)
+	var tests = []struct {
+		data            string
+		want            string
+		whiteListConfig WhiteListConfig
+		blackListConfig BlackListConfig
+	}{
+		{
+			data:            "<h1>Я люблю.  111ЗPorno tut...</h1>",
+			want:            "я 111зporno tut",
+			whiteListConfig: whiteListConfigExample,
+			blackListConfig: BlackListConfig{
+				BlackList: map[string]struct{}{
+					"h1":        {},
+					"люблю":     {},
+					"111ЗPorno": {},
+				},
+			},
+		},
+		{
+			data:            "<h1>Я люблю.  111ЗPorno tut...</h1>",
+			want:            "h1 я люблю 111зporno h1",
+			whiteListConfig: whiteListConfigExample,
+			blackListConfig: BlackListConfig{
+				BlackList: map[string]struct{}{
+					"tut": {},
+				},
+			},
+		},
+		{
+			data:            "<h1>Я люблю.  111ЗPorno tut...</h1>",
+			want:            "h1 я люблю 111зporno tut h1",
+			whiteListConfig: whiteListConfigExample,
+			blackListConfig: BlackListConfig{},
+		},
+	}
+
+	for index, tt := range tests {
+		t.Run(strconv.Itoa(index), func(t *testing.T) {
+			r := strings.NewReader(tt.data)
+			str := CleanWithBlackList(r, tt.whiteListConfig, tt.blackListConfig)
+			assert.Equal(t, tt.want, str)
+		})
+	}
 }
 
 func TestExamples(t *testing.T) {
 	ExampleClean()
 	ExampleCleanBytes()
 	ExampleCleanString()
-	ExampleCleanByStopWords()
+	ExampleCleanStringWithBlackList()
 }
