@@ -201,8 +201,8 @@ func TestCleanWithBlackList(t *testing.T) {
 			},
 		},
 		{
-			data:            "<h1>Я люблю.  111ЗPorno tut...</h1>",
-			want:            "h1 я люблю 111зporno tut h1",
+			data:            "<h1>Я люблю.  111ЗPorno tut...</h1> слово",
+			want:            "h1 я люблю 111зporno tut h1 слово",
 			whiteListConfig: whiteListConfigExample,
 			blackListConfig: BlackListConfig{},
 		},
